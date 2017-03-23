@@ -74,7 +74,7 @@ Sub Scorecard_Table()
     Range("C23").Select
     ActiveCell.FormulaR1C1 = "=IF(R[-21]C[11]>5%,1,0)"
     
-    ' Insert the final score for each critera
+    'Insert the final score for each critera
     Range("D13").Select
     ActiveCell.FormulaR1C1 = "Score"
     Range("D14").Select
