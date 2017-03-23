@@ -4,6 +4,7 @@ Sub Scorecard_Table()
 '
 
 '
+    'Insert the table labels for each category relevant for a non-resource loaded schedule down column A of the excel file
     Range("A14").Select
     ActiveCell.FormulaR1C1 = "Missing Links"
     Range("A15").Select
@@ -24,6 +25,8 @@ Sub Scorecard_Table()
     ActiveCell.FormulaR1C1 = "Invalid Status"
     Range("A23").Select
     ActiveCell.FormulaR1C1 = "Late to Base Fin"
+   
+   'Assign weights for each criteria. Each weight of the 14 pt. assessment is determined by the program manager These weights are sample weights based on previous projects
     Range("B13").Select
     ActiveCell.FormulaR1C1 = "Weight"
     Range("B14").Select
@@ -46,6 +49,8 @@ Sub Scorecard_Table()
     ActiveCell.FormulaR1C1 = "0.75"
     Range("B23").Select
     ActiveCell.FormulaR1C1 = "0.25"
+    
+    'determine the past/fail for each criteria based on the pre-determined thresholds. Threshholds are determined by the program manager
     Range("C13").Select
     ActiveCell.FormulaR1C1 = "Pass/Fail"
     Range("C14").Select
@@ -68,6 +73,8 @@ Sub Scorecard_Table()
     ActiveCell.FormulaR1C1 = "=IF(R[-20]C[9]>0,1,0)"
     Range("C23").Select
     ActiveCell.FormulaR1C1 = "=IF(R[-21]C[11]>5%,1,0)"
+    
+    ' Insert the final score for each critera
     Range("D13").Select
     ActiveCell.FormulaR1C1 = "Score"
     Range("D14").Select
@@ -75,10 +82,14 @@ Sub Scorecard_Table()
     Range("D14").Select
     Selection.AutoFill Destination:=Range("D14:D23"), Type:=xlFillDefault
     Range("D14:D23").Select
+    
+    'Sum criteria to the aggregate score
     Range("D24").Select
     ActiveCell.FormulaR1C1 = "=SUM(R[-10]C:R[-1]C)"
     Range("C24").Select
     ActiveCell.FormulaR1C1 = "=SUM(R[-10]C:R[-1]C)"
+    
+    'Format the table
     Range("A14:D23").Select
     Selection.Borders(xlDiagonalDown).LineStyle = xlNone
     Selection.Borders(xlDiagonalUp).LineStyle = xlNone
