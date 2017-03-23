@@ -1,0 +1,14 @@
+Sub QA_Date_Copy()
+'Recorded by Chris Denhart'
+'Recorded at 4:00 pm on 2/5/15 from Thelan Offices'
+
+'Macro to automatically change the Date format, and copy and paste the finish date into Date6 column (QA Date Compare) and then change date format back to normal format
+    OptionsView DateFormat:=8
+    TableEditEx Name:="! QA Date Compare", TaskTable:=True, NewName:="", FieldName:="Cost1", NewFieldName:="Date6", Title:="", ColumnPosition:=8
+    TableApply Name:="! QA Date Compare"
+    SelectTaskColumn Column:="Finish"
+    EditCopy
+    SelectTaskColumn Column:="Date6"
+    EditPaste
+    OptionsView DateFormat:=9
+End Sub
