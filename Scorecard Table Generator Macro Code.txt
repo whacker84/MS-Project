@@ -1,0 +1,122 @@
+Sub Scorecard_Table()
+'
+' Scorecard_Table Macro
+'
+
+'
+    Range("A14").Select
+    ActiveCell.FormulaR1C1 = "Missing Links"
+    Range("A15").Select
+    ActiveCell.FormulaR1C1 = "Negative Lag"
+    Range("A16").Select
+    ActiveCell.FormulaR1C1 = "Positive Lag"
+    Range("A17").Select
+    ActiveCell.FormulaR1C1 = "Start to Finish"
+    Range("A18").Select
+    ActiveCell.FormulaR1C1 = "Hard Constraint"
+    Range("A19").Select
+    ActiveCell.FormulaR1C1 = "Float > 40d"
+    Range("A20").Select
+    ActiveCell.FormulaR1C1 = "Negative Float"
+    Range("A21").Select
+    ActiveCell.FormulaR1C1 = "Dur > 20d"
+    Range("A22").Select
+    ActiveCell.FormulaR1C1 = "Invalid Status"
+    Range("A23").Select
+    ActiveCell.FormulaR1C1 = "Late to Base Fin"
+    Range("B13").Select
+    ActiveCell.FormulaR1C1 = "Weight"
+    Range("B14").Select
+    ActiveCell.FormulaR1C1 = "0.75"
+    Range("B15").Select
+    ActiveCell.FormulaR1C1 = "2.00"
+    Range("B16").Select
+    ActiveCell.FormulaR1C1 = "0.75"
+    Range("B17").Select
+    ActiveCell.FormulaR1C1 = "0.75"
+    Range("B18").Select
+    ActiveCell.FormulaR1C1 = "2.00"
+    Range("B19").Select
+    ActiveCell.FormulaR1C1 = "0.25"
+    Range("B20").Select
+    ActiveCell.FormulaR1C1 = "2.00"
+    Range("B21").Select
+    ActiveCell.FormulaR1C1 = "0.50"
+    Range("B22").Select
+    ActiveCell.FormulaR1C1 = "0.75"
+    Range("B23").Select
+    ActiveCell.FormulaR1C1 = "0.25"
+    Range("C13").Select
+    ActiveCell.FormulaR1C1 = "Pass/Fail"
+    Range("C14").Select
+    ActiveCell.FormulaR1C1 = "=IF(R[-12]C[-1]>5%,1,0)"
+    Range("C15").Select
+    ActiveCell.FormulaR1C1 = "=IF(R[-13]C>0,1,0)"
+    Range("C16").Select
+    ActiveCell.FormulaR1C1 = "=IF(R[-14]C[1]>5%,1,0)"
+    Range("C17").Select
+    ActiveCell.FormulaR1C1 = "=IF(R[-15]C[2]>0,1,0)"
+    Range("C18").Select
+    ActiveCell.FormulaR1C1 = "=IF(R[-16]C[5]>10%,1,0)"
+    Range("C19").Select
+    ActiveCell.FormulaR1C1 = "=IF(R[-17]C[6]>5%,1,0)"
+    Range("C20").Select
+    ActiveCell.FormulaR1C1 = "=IF(R[-18]C[7]>5%,1,0)"
+    Range("C21").Select
+    ActiveCell.FormulaR1C1 = "=IF(R[-19]C[8]>5%,1,0)"
+    Range("C22").Select
+    ActiveCell.FormulaR1C1 = "=IF(R[-20]C[9]>0,1,0)"
+    Range("C23").Select
+    ActiveCell.FormulaR1C1 = "=IF(R[-21]C[11]>5%,1,0)"
+    Range("D13").Select
+    ActiveCell.FormulaR1C1 = "Score"
+    Range("D14").Select
+    ActiveCell.FormulaR1C1 = "=RC[-2]*RC[-1]"
+    Range("D14").Select
+    Selection.AutoFill Destination:=Range("D14:D23"), Type:=xlFillDefault
+    Range("D14:D23").Select
+    Range("D24").Select
+    ActiveCell.FormulaR1C1 = "=SUM(R[-10]C:R[-1]C)"
+    Range("C24").Select
+    ActiveCell.FormulaR1C1 = "=SUM(R[-10]C:R[-1]C)"
+    Range("A14:D23").Select
+    Selection.Borders(xlDiagonalDown).LineStyle = xlNone
+    Selection.Borders(xlDiagonalUp).LineStyle = xlNone
+    With Selection.Borders(xlEdgeLeft)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlEdgeTop)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlEdgeBottom)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlEdgeRight)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlInsideVertical)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+    With Selection.Borders(xlInsideHorizontal)
+        .LineStyle = xlContinuous
+        .ColorIndex = 0
+        .TintAndShade = 0
+        .Weight = xlThin
+    End With
+End Sub
+
