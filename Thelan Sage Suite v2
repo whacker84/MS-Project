@@ -1,0 +1,1008 @@
+Option Explicit
+
+Dim Ex_Row As Integer
+Dim Ex_Col As Integer
+Dim Ex_KeyColCntr As Integer
+Dim t As Task
+
+Dim Ex_LUColCount As Integer
+Dim Ex_PPColCount As Integer
+Dim Ex_PPKeyField As String
+Dim Ex_LURetField As String
+Dim Ex_PPRetField As String
+Dim Ex_LURetProjField As Long
+Dim Ex_PPRetProjField As Long
+Dim Ex_PPKeyProjField As Long
+Dim Current_KeyField As String
+Dim Test_String As String
+Dim Test_String2 As String
+Dim i As Single
+Dim j As Single
+Dim k As Single
+
+Dim Proj_App As Object
+Dim Proj_Obj As Object
+Dim Proj1 As Project
+Dim Proj2 As Project
+Dim Proj3 As Project
+Dim Proj1_Name As String
+Dim Proj2_Name As String
+Dim Proj3_Name As String
+
+Public Const ToolBarName _
+  As String = "Thelan Sage Suite"
+  
+Dim fileDialog As fileDialog
+Dim strPathFile1 As String
+Dim strPathFile2 As String
+Dim strPathFile3 As String
+Dim dialogTitle As String
+
+Dim Timer1_Start As Double
+Dim Timer1_Min As Double
+Dim Timer2_Start As Double
+Dim Timer2_Min As Double
+Dim Timer3_Start As Double
+Dim Timer3_Min As Double
+Dim TimerVarRep_Start As Double
+Dim TimerVarRep_Min As Double
+Dim TimerPP_Start As Double
+Dim TimerPP_Min As Double
+Dim TimerArrayFill1_Start As Double
+Dim TimerArrayFill2_Start As Double
+Dim TimerArrayFill1_Min As Double
+Dim TimerArrayFill2_Min As Double
+
+Dim ReRunVarRep As Integer
+Dim RunPP As Integer
+Dim RunLU As Integer
+
+Dim TaskList1() As Variant
+Dim TaskList2() As Variant
+Dim Taskt As Integer
+Dim TaskCount2 As Integer
+Dim TaskRowCntr As Integer
+
+Dim xx As Integer
+'{}{}{}{}{}{}{}{}{}{}{}{}{}{{}{}{}}{{}{}}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+'^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+'{}{}{}{}{}{}{}{}{}{}{}{}{}{{}{}{}}{{}{}}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+Sub LOOK_UP()
+    Set Proj_Obj = CreateObject("Msproject.Application")
+    Set Proj_App = Proj_Obj.Application
+    Proj_App.ActiveProject.Activate
+    If ActiveSheet.Cells(3, 1).Value <> "" Then
+        RunLU = MsgBox("Running the Look Up Macro will" & Chr(13) & Chr(13) & "1) READ from this PROJECT .mpp:" & Chr(13) & "***" & ActiveProject.Name & "***" & Chr(13) & Chr(13) & "2) WRITE to this Excel workbook/sheet:" & Chr(13) & "***" & ActiveWorkbook.Name & "[" & ActiveSheet.Name & "]" & Chr(13) & "***" & Chr(13) & Chr(13) & "Proceed?", vbYesNo + vbQuestion, "Run Look Up")
+            If RunLU = vbYes Then
+                
+            Else
+                Exit Sub
+            End If
+    End If
+    ActiveSheet.Activate
+    ClearButton
+    TimerArrayFill1_Start = Now()
+    TimerArrayFill2_Start = Now()
+    Timer1_Start = Now()
+    Ex_KeyColCntr = 1 * 0
+    i = 1 * 0
+    j = 1 * 0
+    k = 1 * 0
+    xx = 1 * 0
+    Ex_LUColCount = 1 * 0
+    MacroProgressForm.Show
+    TaskRowCntr = 1 * 0
+    ActiveSheet.Cells(2, 2).Select
+    Ex_Row = 2
+    Ex_Col = 2
+    For Ex_Col = 1 To 11
+        If ActiveSheet.Cells(Ex_Row, Ex_Col).Value <> "" Then
+            Ex_LUColCount = Ex_LUColCount + 1
+        End If
+    Next Ex_Col
+    Ex_Row = 2
+    Ex_Col = 2
+    i = ActiveProject.Tasks.Count * Ex_LUColCount
+    ReDim TaskList1(ActiveProject.Tasks.Count, Ex_LUColCount)
+    For Ex_Col = 1 To 11
+        Ex_Row = 2
+        If ActiveSheet.Cells(Ex_Row, Ex_Col).Value <> "" Then
+            Ex_LURetField = ActiveSheet.Cells(Ex_Row, Ex_Col).Value
+            Ex_LURetProjField = FieldNameToFieldConstant(Ex_LURetField, pjProject)
+            Ex_Row = Ex_Row + 1
+            For Taskt = 1 To ActiveProject.Tasks.Count
+                TaskList1(TaskRowCntr, xx) = ActiveProject.Tasks(Taskt).GetField(Ex_LURetProjField)
+                TaskRowCntr = TaskRowCntr + 1
+                MacroProgressForm.Bar.Width = (k / i) * 168
+                k = k + 1
+                MacroProgressForm.Perc_Comp.Text = CInt((CInt(k) / CInt(i)) * 100) & "% - " & CInt(k) & "/" & CInt(i)
+                MacroProgressForm.StatusBox.Text = "Loading - " & ActiveProject.Tasks(Taskt).Text5 & " from " & "**" & ActiveProject.Name & "**"
+                MacroProgressForm.Repaint
+            Next
+            xx = xx + 1
+            TaskRowCntr = 1 * 0
+        Else
+            Exit For
+        End If
+    Next Ex_Col
+    MacroProgressForm.Bar.Width = 168
+    MacroProgressForm.Perc_Comp.Text = CInt((CInt(i) / CInt(i)) * 100) & "% - " & CInt(i) & "/" & CInt(i)
+    TimerArrayFill1_Min = Format(((Now() - TimerArrayFill1_Start) * 24 * 60), "0.00")
+    MacroProgressForm.StatusBox.Text = "UID Load Time:" & TimerArrayFill1_Min & " Min"
+    MacroProgressForm.Repaint
+
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    
+    If ActiveSheet.Cells(3, 1).Value = ActiveProject.Tasks.UniqueID(0).Text5 Then
+            Ex_KeyColCntr = 1
+            For xx = 2 To (Ex_LUColCount)
+                Ex_LURetField = ActiveSheet.Cells(2, Ex_KeyColCntr + 1).Value
+                Ex_LURetProjField = FieldNameToFieldConstant(Ex_LURetField, pjProject)
+                ActiveSheet.Cells(3, 1 + Ex_KeyColCntr) = ActiveProject.Tasks.UniqueID(0).GetField(Ex_LURetProjField)
+                Ex_KeyColCntr = Ex_KeyColCntr + 1
+            Next
+            Ex_Col = 2
+            Ex_KeyColCntr = 1 * 0
+            Ex_LURetField = ActiveSheet.Cells(2, 2).Value
+    End If
+    xx = 1 * 0
+    TaskRowCntr = 1 * 0
+    Ex_Col = 2
+    k = 1 * 0
+    i = (ActiveSheet.Range("A3:A20000").Cells.SpecialCells(xlCellTypeConstants).Count + 2) * Ex_LUColCount
+    For Ex_Col = 2 To (Ex_LUColCount + 1)
+        Ex_Row = 3
+        Ex_LURetField = ActiveSheet.Cells(2, Ex_Col).Value
+        Ex_KeyColCntr = Ex_KeyColCntr + 1
+        For Ex_Row = 3 To ActiveSheet.Range("A3:A20000").Cells.SpecialCells(xlCellTypeConstants).Count + 2
+            Taskt = 1 * 0
+            Taskt = 1
+            MacroProgressForm.StatusBox.Text = "UID Load Time:" & TimerArrayFill1_Min & " Min" & Chr(13) & "Looking up - " & ActiveSheet.Cells(Ex_Row, 1).Value & " from " & "**" & ActiveProject.Name & "**"
+            MacroProgressForm.Bar.Width = (k / i) * 168
+            k = k + 1
+            MacroProgressForm.Perc_Comp.Text = CInt((CInt(k) / CInt(i)) * 100) & "% - " & CInt(k) & "/" & CInt(i)
+            MacroProgressForm.Repaint
+            For Taskt = 1 To ActiveProject.Tasks.Count
+                If (ActiveSheet.Cells(Ex_Row, 1).Value = TaskList1(TaskRowCntr, 0)) Then
+                    If ActiveProject.Tasks(Taskt).Summary = True Then
+                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)).Font.Bold = True
+                    Else
+                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)).Font.Bold = False
+                    End If
+                    If Ex_LURetField = "Name" Then
+                        If ActiveProject.Tasks(Taskt).OutlineLevel = 0 Then
+                            ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                        Else
+                            If ActiveProject.Tasks(Taskt).OutlineLevel = 1 Then
+                                ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "  " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                            Else
+                                If ActiveProject.Tasks(Taskt).OutlineLevel = 2 Then
+                                    ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "    " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                Else
+                                    If ActiveProject.Tasks(Taskt).OutlineLevel = 3 Then
+                                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "      " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                    Else
+                                        If ActiveProject.Tasks(Taskt).OutlineLevel = 3 Then
+                                            ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "        " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                        Else
+                                            If ActiveProject.Tasks(Taskt).OutlineLevel = 4 Then
+                                                ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "          " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                            Else
+                                                If ActiveProject.Tasks(Taskt).OutlineLevel = 5 Then
+                                                    ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "            " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                Else
+                                                    If ActiveProject.Tasks(Taskt).OutlineLevel = 6 Then
+                                                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "              " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                    Else
+                                                        If ActiveProject.Tasks(Taskt).OutlineLevel = 7 Then
+                                                            ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                        Else
+                                                            If ActiveProject.Tasks(Taskt).OutlineLevel = 8 Then
+                                                                ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                  " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                            Else
+                                                                If ActiveProject.Tasks(Taskt).OutlineLevel = 9 Then
+                                                                    ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                    " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                Else
+                                                                    If ActiveProject.Tasks(Taskt).OutlineLevel = 10 Then
+                                                                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                      " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                    Else
+                                                                        If ActiveProject.Tasks(Taskt).OutlineLevel = 11 Then
+                                                                            ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                        " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                        Else
+                                                                            If ActiveProject.Tasks(Taskt).OutlineLevel = 12 Then
+                                                                                ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                          " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                            Else
+                                                                                If ActiveProject.Tasks(Taskt).OutlineLevel = 13 Then
+                                                                                    ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                            " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                Else
+                                                                                    If ActiveProject.Tasks(Taskt).OutlineLevel = 14 Then
+                                                                                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                              " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                    Else
+                                                                                        If ActiveProject.Tasks(Taskt).OutlineLevel = 15 Then
+                                                                                            ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                                " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                        Else
+                                                                                            If ActiveProject.Tasks(Taskt).OutlineLevel = 16 Then
+                                                                                                ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                                  " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                            Else
+                                                                                                If ActiveProject.Tasks(Taskt).OutlineLevel = 17 Then
+                                                                                                    ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                                    " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                                Else
+                                                                                                    If ActiveProject.Tasks(Taskt).OutlineLevel = 18 Then
+                                                                                                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                                      " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                                    Else
+                                                                                                        If ActiveProject.Tasks(Taskt).OutlineLevel = 19 Then
+                                                                                                            ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                                        " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                                        Else
+                                                                                                            If ActiveProject.Tasks(Taskt).OutlineLevel = 20 Then
+                                                                                                                ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                                          " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                                            End If
+                                                                                                        End If
+                                                                                                    End If
+                                                                                                End If
+                                                                                            End If
+                                                                                        End If
+                                                                                    End If
+                                                                                End If
+                                                                            End If
+                                                                        End If
+                                                                    End If
+                                                                End If
+                                                            End If
+                                                        End If
+                                                    End If
+                                                End If
+                                            End If
+                                        End If
+                                    End If
+                                End If
+                            End If
+                        End If
+                    Else
+                        ActiveSheet.Cells(Ex_Row, 1 + Ex_KeyColCntr).Value = TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                    End If
+                End If
+                TaskRowCntr = TaskRowCntr + 1
+            Next
+            TaskRowCntr = 1 * 0
+            If ActiveSheet.Cells(Ex_Row, Ex_KeyColCntr).Value = "" Then
+                ActiveSheet.Cells(Ex_Row, Ex_KeyColCntr).Value = "did not exist"
+            End If
+        Next
+    Next
+    MacroProgressForm.Bar.Width = 168
+    MacroProgressForm.Perc_Comp.Text = CInt((CInt(i) / CInt(i)) * 100) & "% - " & CInt(i) & "/" & CInt(i)
+    TimerArrayFill2_Min = Format(((Now() - TimerArrayFill2_Start) * 24 * 60), "0.00")
+    MacroProgressForm.StatusBox.Text = "UID Load Time:" & TimerArrayFill1_Min & " Min" & Chr(13) & "Processing of " & "**" & ActiveProject.Name & "**" & " complete..." & Chr(13) & "Total Look Up Time:" & TimerArrayFill2_Min & " Min"
+    MacroProgressForm.Repaint
+End Sub
+'{}{}{}{}{}{}{}{}{}{}{}{}{}{{}{}{}}{{}{}}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+'^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+'{}{}{}{}{}{}{}{}{}{}{}{}{}{{}{}{}}{{}{}}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+Sub Auto_Open()
+  Call CreateMenubar
+End Sub
+
+'{}{}{}{}{}{}{}{}{}{}{}{}{}{{}{}{}}{{}{}}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+'^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+'{}{}{}{}{}{}{}{}{}{}{}{}{}{{}{}{}}{{}{}}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+Sub Auto_Close()
+  Call RemoveMenubar
+End Sub
+
+'{}{}{}{}{}{}{}{}{}{}{}{}{}{{}{}{}}{{}{}}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+'^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+'{}{}{}{}{}{}{}{}{}{}{}{}{}{{}{}{}}{{}{}}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+Sub RemoveMenubar()
+  On Error Resume Next
+  Application.CommandBars _
+    (ToolBarName).Delete
+  On Error GoTo 0
+End Sub
+
+'{}{}{}{}{}{}{}{}{}{}{}{}{}{{}{}{}}{{}{}}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+'^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+'{}{}{}{}{}{}{}{}{}{}{}{}{}{{}{}{}}{{}{}}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+Sub CreateMenubar()
+
+Dim iCtr As Long
+
+Dim MacNames As Variant
+Dim CapNamess As Variant
+Dim TipText As Variant
+
+Call RemoveMenubar
+
+MacNames = Array("LOOK_UP", _
+              "PRECISION_POST", "ClearALLButton", "ClearButton", "RUN_VARIANCE_REPORT")
+
+CapNamess = Array("Look Up Macro", _
+              "Precision Post Macro", "Clear ALL", "Clear Fields/Data", "Run Variance Report")
+
+With Application.CommandBars.Add
+  .Name = ToolBarName
+  .Left = 200
+  .Top = 200
+  .Protection = msoBarNoProtection
+  .Visible = True
+  .Position = msoBarFloating
+
+  For iCtr = LBound(MacNames) _
+      To UBound(MacNames)
+    With .Controls.Add _
+      (Type:=msoControlButton)
+      .OnAction = "'" _
+        & ThisWorkbook.Name _
+        & "'!" & MacNames(iCtr)
+      .Caption = CapNamess(iCtr)
+      .Style = msoButtonIconAndCaption
+      .FaceId = 71 + iCtr
+    End With
+  Next iCtr
+End With
+End Sub
+
+'===========================================
+Sub PRECISION_POST()
+    If ActiveSheet.Cells(3, 1).Value <> "" Then
+        RunPP = MsgBox("Running the Precision Post Macro will" & Chr(13) & Chr(13) & "1) READ from this EXCEL workbook/sheet:" & Chr(13) & "***" & ActiveWorkbook.Name & "[" & ActiveSheet.Name & "]" & "***" & Chr(13) & Chr(13) & "2) WRITE to this PROJECT .mpp:" & Chr(13) & "***" & ActiveProject.Name & Chr(13) & "***" & Chr(13) & "(PLEASE MAKE SURE TO BACK UP YOUR .MPP FILE FIRST)" & Chr(13) & Chr(13) & "Proceed?", vbYesNo + vbQuestion, "Run Precision Post")
+            If RunPP = vbYes Then
+                
+            Else
+                Exit Sub
+            End If
+    End If
+    
+    TimerPP_Start = Now()
+    ActiveSheet.Cells(3, 2).Select
+    Ex_Col = 1 * 0
+    Ex_Row = 1 * 0
+    Ex_KeyColCntr = 1 * 0
+    Ex_PPColCount = 1 * 0
+    Ex_PPRetField = Empty
+
+    'Progress Bar/Counter reset'
+    i = 1 * 0
+    j = 1 * 0
+    k = 1 * 0
+    Ex_PPColCount = 1 * 0
+    MacroProgressForm.Show
+    MacroProgressForm.Bar.Width = k
+    'Progress Bar/Counter reset'
+    
+    'Loop for User-Defined Column Count Start'
+    ActiveSheet.Cells(2, 1).Select
+    Ex_Row = ActiveCell.Row
+    Ex_Col = ActiveCell.Column
+    ActiveSheet.Cells(Ex_Row, Ex_Col).Select
+    Ex_Col = 2
+    For Ex_Col = 2 To 11
+        If ActiveSheet.Cells(Ex_Row, Ex_Col).Value <> "" Then
+            Ex_PPColCount = Ex_PPColCount + 1
+        Else
+            Exit For
+        End If
+    Next Ex_Col
+    i = (ActiveProject.Tasks.Count * Ex_PPColCount)
+    'Loop for User-Defined Column Count Finish'
+        
+    'Precision Post Loop Start'
+    Ex_PPColCount = 1 * 0
+    ActiveSheet.Cells(2, 1).Select
+    Ex_Row = ActiveCell.Row
+    Ex_Col = ActiveCell.Column
+    Ex_PPKeyField = ActiveCell.Value
+    Ex_PPKeyProjField = FieldNameToFieldConstant(Ex_PPKeyField, pjProject)
+    ActiveSheet.Cells(Ex_Row, Ex_Col).Select
+    Ex_Col = 2
+        
+    For Ex_Col = 2 To 11
+        If ActiveSheet.Cells(Ex_Row, Ex_Col).Value <> "" Then
+            Ex_PPRetField = ActiveSheet.Cells(Ex_Row, Ex_Col).Value
+            Ex_PPRetProjField = FieldNameToFieldConstant(Ex_PPRetField, pjProject)
+            Ex_PPColCount = Ex_PPColCount + 1
+        Else
+            Exit For
+        End If
+        Ex_KeyColCntr = Ex_KeyColCntr + 1
+        Ex_Row = Ex_Row + 1
+        Ex_Col = Ex_Col - Ex_KeyColCntr
+        If ActiveProject.Tasks.UniqueID(0).GetField(Ex_PPKeyProjField) = ActiveSheet.Cells(Ex_Row, Ex_Col).Value Then
+            Ex_Col = Ex_Col + Ex_KeyColCntr
+            ActiveProject.Tasks.UniqueID(0).SetField FieldID:=Ex_PPRetProjField, Value:=CStr(ActiveSheet.Cells(Ex_Row, Ex_Col).Value)
+            Ex_Row = Ex_Row + 1
+            Ex_Col = Ex_Col - Ex_KeyColCntr
+        Else
+            Ex_Col = Ex_Col + Ex_KeyColCntr
+            Ex_Col = Ex_Col - Ex_KeyColCntr
+        End If
+            For Each t In ActiveProject.Tasks
+
+                If t.GetField(Ex_PPKeyProjField) = ActiveSheet.Cells(Ex_Row, Ex_Col).Value Then
+                    Ex_Col = Ex_Col + Ex_KeyColCntr
+                    Current_KeyField = t.GetField(Ex_PPKeyProjField)
+                    t.SetField FieldID:=Ex_PPRetProjField, Value:=CStr(ActiveSheet.Cells(Ex_Row, Ex_Col).Value)
+                    Ex_Row = Ex_Row + 1
+                    Ex_Col = Ex_Col - Ex_KeyColCntr
+                End If
+                k = k + 1
+                MacroProgressForm.Bar.Width = (k / i) * 168
+                MacroProgressForm.Repaint
+                MacroProgressForm.Perc_Comp.Text = CInt((CInt(k) / CInt(i)) * 100) & "% - " & CInt(k) & "/" & CInt(i)
+                MacroProgressForm.StatusBox.Text = "Posting to - " & ActiveSheet.Cells(Ex_Row, 1).Value & " from " & Chr(13) & ActiveProject.Name
+            Next
+        
+        Ex_Row = 2
+        Ex_Col = Ex_Col + Ex_KeyColCntr
+    Next
+    'Precision Post Loop Finish'
+    
+    MacroProgressForm.Bar.Width = 168
+    MacroProgressForm.Bar.Text = "Macro Completed"
+    TimerPP_Min = Format(((Now() - TimerPP_Start) * 24 * 60), "0.00")
+    MacroProgressForm.StatusBox.Text = "Precision Post Finished" & Chr(13) & "Macro Timer: " & TimerPP_Min & " Min"
+
+End Sub
+
+'===========================================
+Sub ClearALLButton()
+If ActiveSheet.Name = "UID-Schedule Data Compare" Then
+    MsgBox ("This sheet has formulas which cannot be cleared using Clear ALL.")
+Else
+    Range("A3:K1048559").Select
+    Selection.ClearContents
+    Range("A3").Select
+End If
+End Sub
+
+'===========================================
+Sub ClearButton()
+If ActiveSheet.Name = "UID-Schedule Data Compare" Then
+    MsgBox ("This sheet has formulas which cannot be cleared.")
+Else
+  Range("B3:K3").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.ClearContents
+    ActiveWindow.ScrollRow = 1048560
+    ActiveWindow.ScrollRow = 3
+    Range("B3").Select
+End If
+End Sub
+'===========================================
+
+Sub FormatSummarySheet()
+'
+' Format Macro
+    Sheets("Current").Activate
+    ActiveWindow.SmallScroll Down:=-21
+    ActiveSheet.Columns("A:C").Select
+    Selection.Copy
+    Sheets("UID-Schedule Data Compare").Activate
+    ActiveSheet.Columns("A:C").Select
+    Selection.PasteSpecial Paste:=xlPasteFormats, Operation:=xlNone, _
+        SkipBlanks:=False, Transpose:=False
+    Application.CutCopyMode = False
+    Range("A3").Select
+End Sub
+
+Sub RUN_VARIANCE_REPORT()
+    
+    Sheets("Current").Activate
+    If ActiveSheet.Cells(3, 1).Value <> "" Then
+        ReRunVarRep = MsgBox("Running the Variance Report Macro will CLEAR ALL DATA from this workbook... Proceed?", vbYesNo + vbQuestion, "Run Variance Report")
+            If ReRunVarRep = vbYes Then
+                
+            Else
+                Exit Sub
+            End If
+    End If
+    strPathFile1 = ""
+    strPathFile2 = ""
+    strPathFile3 = ""
+    TimerVarRep_Start = Now()
+    Timer1_Start = Now()
+    Set Proj_Obj = CreateObject("Msproject.Application")
+    Set Proj_App = Proj_Obj.Application
+    Sheets("Previous-II").Activate
+    ClearButton
+    Sheets("Previous-I").Activate
+    ClearButton
+    Sheets("Current").Activate
+    ClearALLButton
+    
+    'Prompt user and open file 1 of 3
+    dialogTitle = "Select *MOST CURRENT* Schedule (1 of 3)"
+    Set fileDialog = Application.fileDialog(msoFileDialogFilePicker)
+    With fileDialog
+        .InitialFileName = ThisWorkbook.Path & "\"
+        .AllowMultiSelect = False
+        .Filters.Clear
+        .Title = dialogTitle
+        
+        If .Show = False Then
+            MsgBox "File not selected to import. Process Terminated"
+            Exit Sub
+        End If
+        strPathFile1 = .SelectedItems(1)
+    End With
+    Proj1_Name = InputBox("Please give the file a name/handler for the summary page headings", strPathFile1, "<<mm_dd_yy>>")
+    FileOpen strPathFile1
+    Set Proj1 = Proj_App.ActiveProject
+    
+    'Prompt user and open file 2 of 3
+    dialogTitle = "Select *PREVIOUS-I* Schedule (2 of 3)"
+    Set fileDialog = Application.fileDialog(msoFileDialogFilePicker)
+    With fileDialog
+        .InitialFileName = ThisWorkbook.Path & "\"
+        .AllowMultiSelect = False
+        .Filters.Clear
+        .Title = dialogTitle
+        
+        If .Show = False Then
+            MsgBox "File not selected to import. Process Terminated"
+            Exit Sub
+        End If
+        strPathFile2 = .SelectedItems(1)
+    End With
+    Proj2_Name = InputBox("Please give the file a name/handler for the summary page headings", strPathFile2, "<<mm_dd_yy>>")
+    FileOpen strPathFile2
+    Set Proj2 = Proj_App.ActiveProject
+    
+    'Prompt user and open file 3 of 3
+    dialogTitle = "Select *PREVIOUS-II* Schedule (3 of 3)"
+    Set fileDialog = Application.fileDialog(msoFileDialogFilePicker)
+    With fileDialog
+        .InitialFileName = ThisWorkbook.Path & "\"
+        .AllowMultiSelect = False
+        .Filters.Clear
+        .Title = dialogTitle
+        If .Show = False Then
+            MsgBox "File not selected to import. Process Terminated"
+            Exit Sub
+        End If
+        strPathFile3 = .SelectedItems(1)
+    End With
+    Proj3_Name = InputBox("Please give the file a name/handler for the summary page headings", strPathFile3, "<<mm_dd_yy>>")
+    FileOpen strPathFile3
+    Set Proj3 = Proj_App.ActiveProject
+    Sheets("Current").Activate
+    Sheets("Current").Visible = True
+    ActiveSheet.Cells(3, 1).Select
+    Ex_Row = ActiveCell.Row
+    Ex_Col = ActiveCell.Column
+    MacroProgressForm.Show
+    
+    i = 1 * 0
+    j = 1 * 0
+    k = 1 * 0
+    Ex_LUColCount = 1 * 0
+    MacroProgressForm.Bar.Width = k
+    i = Proj1.Tasks.Count
+    '===========Initial UID Load==================================
+    For Each t In Proj1.Tasks
+        If t.Summary = True Then
+            Sheets("Current").Cells(Ex_Row, Ex_Col).Font.Bold = True
+        Else
+            Sheets("Current").Cells(Ex_Row, Ex_Col).Font.Bold = False
+        End If
+        Sheets("Current").Cells(Ex_Row, Ex_Col) = t.Text5
+        Ex_Row = Ex_Row + 1
+        k = k + 1
+        MacroProgressForm.Bar.Width = (k / i) * 168
+        MacroProgressForm.Perc_Comp.Text = CInt((CInt(k) / CInt(i)) * 100) & "% - " & CInt(k) & "/" & CInt(i)
+        MacroProgressForm.StatusBox.Text = "Loading UIDs - " & t.Text5 & Chr(13) & " from " & Proj1_Name
+        MacroProgressForm.Repaint
+    Next
+    MacroProgressForm.Bar.Width = 168
+    Ex_Row = 3
+    Ex_Col = 1
+    i = 1 * 0
+    j = 1 * 0
+    k = 1 * 0
+    Ex_LUColCount = 1 * 0
+    MacroProgressForm.Bar.Width = k
+    i = Proj1.Tasks.Count
+    For Each t In Proj1.Tasks
+        If t.Summary = True Then
+            Sheets("Previous-I").Cells(Ex_Row, Ex_Col).Font.Bold = True
+        Else
+            Sheets("Previous-I").Cells(Ex_Row, Ex_Col).Font.Bold = False
+        End If
+        Sheets("Previous-I").Cells(Ex_Row, Ex_Col) = t.Text5
+        Ex_Row = Ex_Row + 1
+        k = k + 1
+        MacroProgressForm.Bar.Width = (k / i) * 168
+        MacroProgressForm.Perc_Comp.Text = CInt((CInt(k) / CInt(i)) * 100) & "% - " & CInt(k) & "/" & CInt(i)
+        MacroProgressForm.StatusBox.Text = "Loading UIDs - " & t.Text5 & Chr(13) & " from " & Proj1_Name
+        MacroProgressForm.Repaint
+    Next
+    MacroProgressForm.Bar.Width = 168
+    Ex_Row = 3
+    Ex_Col = 1
+    i = 1 * 0
+    j = 1 * 0
+    k = 1 * 0
+    Ex_LUColCount = 1 * 0
+    MacroProgressForm.Bar.Width = k
+    i = Proj1.Tasks.Count
+    For Each t In Proj1.Tasks
+        If t.Summary = True Then
+            Sheets("Previous-II").Cells(Ex_Row, Ex_Col).Font.Bold = True
+        Else
+            Sheets("Previous-II").Cells(Ex_Row, Ex_Col).Font.Bold = False
+        End If
+        Sheets("Previous-II").Cells(Ex_Row, Ex_Col) = t.Text5
+        Ex_Row = Ex_Row + 1
+        k = k + 1
+        MacroProgressForm.Bar.Width = (k / i) * 168
+        MacroProgressForm.Perc_Comp.Text = CInt((CInt(k) / CInt(i)) * 100) & "% - " & CInt(k) & "/" & CInt(i)
+        MacroProgressForm.StatusBox.Text = "Loading UIDs - " & t.Text5 & Chr(13) & " from " & Proj1_Name
+        MacroProgressForm.Repaint
+    Next
+    MacroProgressForm.Bar.Width = 168
+    MacroProgressForm.StatusBox.Text = "Initial UID Load Finished"
+    '===========Initial UID Load==================================
+    'Look up 1 of 3
+    '{}{}{}{}{}{}{}{}{}{}{}{}{}{{}{}{}}{{}{}}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    '{}{}{}{}{}{}{}{}{}{}{}{}{}{{}{}{}}{{}{}}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}
+    Sheets("Current").Activate
+    ClearButton
+    TimerArrayFill1_Start = Now()
+    TimerArrayFill2_Start = Now()
+    Timer1_Start = Now()
+    Ex_KeyColCntr = 1 * 0
+    i = 1 * 0
+    j = 1 * 0
+    k = 1 * 0
+    xx = 1 * 0
+    Ex_LUColCount = 1 * 0
+    MacroProgressForm.Show
+    TaskRowCntr = 1 * 0
+    ActiveSheet.Cells(2, 2).Select
+    Ex_Row = 2
+    Ex_Col = 2
+    For Ex_Col = 1 To 11
+        If ActiveSheet.Cells(Ex_Row, Ex_Col).Value <> "" Then
+            Ex_LUColCount = Ex_LUColCount + 1
+        End If
+    Next Ex_Col
+    Ex_Row = 2
+    Ex_Col = 2
+    i = Proj1.Tasks.Count * Ex_LUColCount
+    ReDim TaskList1(Proj1.Tasks.Count, Ex_LUColCount)
+    For Ex_Col = 1 To 11
+        Ex_Row = 2
+        If ActiveSheet.Cells(Ex_Row, Ex_Col).Value <> "" Then
+            Ex_LURetField = ActiveSheet.Cells(Ex_Row, Ex_Col).Value
+            Ex_LURetProjField = FieldNameToFieldConstant(Ex_LURetField, pjProject)
+            Ex_Row = Ex_Row + 1
+            For Taskt = 1 To Proj1.Tasks.Count
+                TaskList1(TaskRowCntr, xx) = Proj1.Tasks(Taskt).GetField(Ex_LURetProjField)
+                TaskRowCntr = TaskRowCntr + 1
+                MacroProgressForm.Bar.Width = (k / i) * 168
+                k = k + 1
+                MacroProgressForm.Perc_Comp.Text = CInt((CInt(k) / CInt(i)) * 100) & "% - " & CInt(k) & "/" & CInt(i)
+                MacroProgressForm.StatusBox.Text = "Loading - " & Proj1.Tasks(Taskt).Text5 & " from " & "**" & Proj1.Name & "**"
+                MacroProgressForm.Repaint
+            Next
+            xx = xx + 1
+            TaskRowCntr = 1 * 0
+        Else
+            Exit For
+        End If
+    Next Ex_Col
+    MacroProgressForm.Bar.Width = 168
+    MacroProgressForm.Perc_Comp.Text = CInt((CInt(i) / CInt(i)) * 100) & "% - " & CInt(i) & "/" & CInt(i)
+    TimerArrayFill1_Min = Format(((Now() - TimerArrayFill1_Start) * 24 * 60), "0.00")
+    MacroProgressForm.StatusBox.Text = "UID Load Time:" & TimerArrayFill1_Min & " Min"
+    MacroProgressForm.Repaint
+
+    '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    xx = 1 * 0
+    Ex_Col = 2
+    TaskRowCntr = 1 * 0
+    k = 1 * 0
+    i = (ActiveSheet.Range("A3:A20000").Cells.SpecialCells(xlCellTypeConstants).Count + 2) * Ex_LUColCount
+    For Ex_Col = 2 To (Ex_LUColCount + 1)
+        Ex_Row = 3
+        Ex_LURetField = ActiveSheet.Cells(2, Ex_Col).Value
+        Ex_KeyColCntr = Ex_KeyColCntr + 1
+        For Ex_Row = 3 To ActiveSheet.Range("A3:A20000").Cells.SpecialCells(xlCellTypeConstants).Count + 2
+            Taskt = 1 * 0
+            Taskt = 1
+            MacroProgressForm.StatusBox.Text = "UID Load Time:" & TimerArrayFill1_Min & " Min" & Chr(13) & "Looking up - " & ActiveSheet.Cells(Ex_Row, 1).Value & " from " & "**" & Proj1.Name & "**"
+            MacroProgressForm.Bar.Width = (k / i) * 168
+            k = k + 1
+            MacroProgressForm.Perc_Comp.Text = CInt((CInt(k) / CInt(i)) * 100) & "% - " & CInt(k) & "/" & CInt(i)
+            MacroProgressForm.Repaint
+            For Taskt = 1 To Proj1.Tasks.Count
+                If (ActiveSheet.Cells(Ex_Row, 1).Value = TaskList1(TaskRowCntr, 0)) Then
+                    If ActiveProject.Tasks(Taskt).Summary = True Then
+                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)).Font.Bold = True
+                    Else
+                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)).Font.Bold = False
+                    End If
+                    If Ex_LURetField = "Name" Then
+                        If ActiveProject.Tasks(Taskt).OutlineLevel = 0 Then
+                            ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                        Else
+                            If ActiveProject.Tasks(Taskt).OutlineLevel = 1 Then
+                                ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "  " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                            Else
+                                If ActiveProject.Tasks(Taskt).OutlineLevel = 2 Then
+                                    ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "    " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                Else
+                                    If ActiveProject.Tasks(Taskt).OutlineLevel = 3 Then
+                                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "      " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                    Else
+                                        If ActiveProject.Tasks(Taskt).OutlineLevel = 3 Then
+                                            ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "        " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                        Else
+                                            If ActiveProject.Tasks(Taskt).OutlineLevel = 4 Then
+                                                ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "          " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                            Else
+                                                If ActiveProject.Tasks(Taskt).OutlineLevel = 5 Then
+                                                    ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "            " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                Else
+                                                    If ActiveProject.Tasks(Taskt).OutlineLevel = 6 Then
+                                                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "              " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                    Else
+                                                        If ActiveProject.Tasks(Taskt).OutlineLevel = 7 Then
+                                                            ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                        Else
+                                                            If ActiveProject.Tasks(Taskt).OutlineLevel = 8 Then
+                                                                ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                  " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                            Else
+                                                                If ActiveProject.Tasks(Taskt).OutlineLevel = 9 Then
+                                                                    ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                    " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                Else
+                                                                    If ActiveProject.Tasks(Taskt).OutlineLevel = 10 Then
+                                                                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                      " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                    Else
+                                                                        If ActiveProject.Tasks(Taskt).OutlineLevel = 11 Then
+                                                                            ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                        " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                        Else
+                                                                            If ActiveProject.Tasks(Taskt).OutlineLevel = 12 Then
+                                                                                ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                          " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                            Else
+                                                                                If ActiveProject.Tasks(Taskt).OutlineLevel = 13 Then
+                                                                                    ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                            " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                Else
+                                                                                    If ActiveProject.Tasks(Taskt).OutlineLevel = 14 Then
+                                                                                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                              " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                    Else
+                                                                                        If ActiveProject.Tasks(Taskt).OutlineLevel = 15 Then
+                                                                                            ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                                " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                        Else
+                                                                                            If ActiveProject.Tasks(Taskt).OutlineLevel = 16 Then
+                                                                                                ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                                  " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                            Else
+                                                                                                If ActiveProject.Tasks(Taskt).OutlineLevel = 17 Then
+                                                                                                    ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                                    " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                                Else
+                                                                                                    If ActiveProject.Tasks(Taskt).OutlineLevel = 18 Then
+                                                                                                        ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                                      " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                                    Else
+                                                                                                        If ActiveProject.Tasks(Taskt).OutlineLevel = 19 Then
+                                                                                                            ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                                        " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                                        Else
+                                                                                                            If ActiveProject.Tasks(Taskt).OutlineLevel = 20 Then
+                                                                                                                ActiveSheet.Cells(Ex_Row, (1 + Ex_KeyColCntr)) = "                                          " & TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                                                                                                            End If
+                                                                                                        End If
+                                                                                                    End If
+                                                                                                End If
+                                                                                            End If
+                                                                                        End If
+                                                                                    End If
+                                                                                End If
+                                                                            End If
+                                                                        End If
+                                                                    End If
+                                                                End If
+                                                            End If
+                                                        End If
+                                                    End If
+                                                End If
+                                            End If
+                                        End If
+                                    End If
+                                End If
+                            End If
+                        End If
+                    Else
+                        ActiveSheet.Cells(Ex_Row, 1 + Ex_KeyColCntr).Value = TaskList1(TaskRowCntr, Ex_KeyColCntr)
+                    End If
+                End If
+                TaskRowCntr = TaskRowCntr + 1
+            Next
+            TaskRowCntr = 1 * 0
+            If ActiveSheet.Cells(Ex_Row, Ex_KeyColCntr).Value = "" Then
+                ActiveSheet.Cells(Ex_Row, Ex_KeyColCntr).Value = "did not exist"
+            End If
+        Next
+    Next
+    MacroProgressForm.Bar.Width = 168
+    MacroProgressForm.Perc_Comp.Text = CInt((CInt(i) / CInt(i)) * 100) & "% - " & CInt(i) & "/" & CInt(i)
+    Timer1_Min = Format(((Now() - Timer1_Start) * 24 * 60), "0.00")
+    MacroProgressForm.StatusBox.Text = "Initial UID Load Finished" & Chr(13) & "Look Up 1 Finished" & Chr(13) & "'" & Proj1_Name & "-->" & Timer1_Min & " Min"
+    MacroProgressForm.Repaint
+    
+    ActiveSheet.Columns("D:E").Select
+    Selection.Replace What:=" Mon", Replacement:="", LookAt:=xlPart, _
+        SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+        ReplaceFormat:=False
+    Selection.Replace What:="Mon ", Replacement:="", LookAt:=xlPart, _
+        SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+        ReplaceFormat:=False
+    Selection.Replace What:="Tue ", Replacement:="", LookAt:=xlPart, _
+        SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+        ReplaceFormat:=False
+    Selection.Replace What:="Wed ", Replacement:="", LookAt:=xlPart, _
+        SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+        ReplaceFormat:=False
+    Selection.Replace What:="Thu ", Replacement:="", LookAt:=xlPart, _
+        SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+        ReplaceFormat:=False
+    Selection.Replace What:="Fri ", Replacement:="", LookAt:=xlPart, _
+        SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+        ReplaceFormat:=False
+    Selection.Replace What:="Sat ", Replacement:="", LookAt:=xlPart, _
+        SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+        ReplaceFormat:=False
+    Selection.Replace What:="Sun ", Replacement:="", LookAt:=xlPart, _
+        SearchOrder:=xlByRows, MatchCase:=False, SearchFormat:=False, _
+        ReplaceFormat:=False
+'[][[][][][][][][][][][][][][][][][][][][][][][][][][]][[][][][][][[][][]
+'=================== End of File 1 of 3===================================
+'[][[][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][]
+    Timer2_Start = Now()
+    i = 1 * 0
+    j = 1 * 0
+    k = 1 * 0
+    Taskt = 1 * 0
+    Sheets("Previous-I").Activate
+    i = Proj2.Tasks.Count
+    ReDim TaskList2(Proj2.Tasks.Count, 2)
+    TaskRowCntr = 0
+    For Taskt = 1 To Proj2.Tasks.Count
+        MacroProgressForm.StatusBox.Text = "Initial UID Load Finished" & Chr(13) & "Look Up 1 Finished" & Chr(13) & "'" & Proj1_Name & "-->" & Timer1_Min & " Min" & Chr(13) & "Loading - " & Proj2.Tasks(Taskt).Text5 & " from " & Proj2.Name
+        TaskList2(TaskRowCntr, 0) = Proj2.Tasks(Taskt).Text5
+        TaskList2(TaskRowCntr, 1) = Format(Proj2.Tasks(Taskt).Start, "mm/dd/yy")
+        TaskList2(TaskRowCntr, 2) = Format(Proj2.Tasks(Taskt).Finish, "mm/dd/yy")
+        TaskRowCntr = TaskRowCntr + 1
+        MacroProgressForm.Bar.Width = (k / i) * 168
+        k = k + 1
+        MacroProgressForm.Perc_Comp.Text = CInt((CInt(k) / CInt(i)) * 100) & "% - " & CInt(k) & "/" & CInt(i)
+        MacroProgressForm.Repaint
+    Next
+    TaskRowCntr = 1 * 0
+    i = Sheets("Previous-I").Range("A3:A5000").Cells.SpecialCells(xlCellTypeConstants).Count
+    k = 0
+    MacroProgressForm.Bar.Width = k
+    For Ex_Row = 3 To Sheets("Previous-I").Range("A3:A5000").Cells.SpecialCells(xlCellTypeConstants).Count + 2
+            MacroProgressForm.StatusBox.Text = "Initial UID Load Finished" & Chr(13) & "Look Up 1 Finished" & Chr(13) & "'" & Proj1_Name & "-->" & Timer1_Min & " Min" & Chr(13) & "Loading - " & ActiveSheet.Cells(Ex_Row, 1) & " from " & Proj2.Name
+            For TaskCount2 = LBound(TaskList2) To UBound(TaskList2)
+                If (Sheets("Previous-I").Cells(Ex_Row, 1).Value = TaskList2(TaskRowCntr, 0)) Then
+                    Sheets("Previous-I").Cells(Ex_Row, 2).Value = TaskList2(TaskRowCntr, 1)
+                    Sheets("Previous-I").Cells(Ex_Row, 3).Value = TaskList2(TaskRowCntr, 2)
+                    Exit For
+                End If
+                TaskRowCntr = TaskRowCntr + 1
+            Next
+            TaskRowCntr = 0
+            If Sheets("Previous-I").Cells(Ex_Row, 2).Value = "" Then
+                Sheets("Previous-I").Cells(Ex_Row, 2).Value = "did not exist"
+                Sheets("Previous-I").Cells(Ex_Row, 3).Value = "did not exist"
+            End If
+            k = k + 1
+            MacroProgressForm.Bar.Width = (k / i) * 168
+            MacroProgressForm.Perc_Comp.Text = CInt((CInt(k) / CInt(i)) * 100) & "% - " & CInt(k) & "/" & CInt(i)
+            MacroProgressForm.StatusBox.Text = "Initial UID Load Finished" & Chr(13) & "Look Up 1 Finished" & Chr(13) & "'" & Proj1_Name & "'" & "-->" & Timer1_Min & " Min" & Chr(13) & "Looking up - " & Sheets("Previous-I").Cells(Ex_Row, 1).Value & Chr(13) & " from " & Proj2.Name
+            MacroProgressForm.Repaint
+    Next
+    Timer2_Min = Format(((Now() - Timer2_Start) * 24 * 60), "0.00")
+    MacroProgressForm.StatusBox.Text = "Initial UID Load Finished" & Chr(13) & "Look Up 1 Finished" & Chr(13) & "'" & Proj1_Name & "-->" & Timer1_Min & " Min" & Chr(13) & "Look Up 2 Finished" & Chr(13) & "'" & Proj2_Name & "'" & "--->" & Timer2_Min & " Min"
+    MacroProgressForm.StatusBox.Width = 168
+    MacroProgressForm.Perc_Comp.Text = CInt((CInt(i) / CInt(i)) * 100) & "% - " & CInt(i) & "/" & CInt(i)
+    MacroProgressForm.Repaint
+    Ex_KeyColCntr = 1 * 0
+    Ex_LUColCount = 1 * 0
+    Ex_LURetField = ""
+    Ex_LURetProjField = 1 * 0
+    TaskRowCntr = 1 * 0
+'[][[][][][][][][][][][][][][][][][][][][][][][][][][]][[][][][][][[][][]
+'=================== End of File 2 of 3===================================
+'[][[][][][][][][][][][][][][][[][][][][][][][][][][][][][][][][][][][][]
+    Timer3_Start = Now()
+    Sheets("Previous-II").Activate
+    Sheets("Previous-II").Visible = True
+    i = 1 * 0
+    j = 1 * 0
+    k = 1 * 0
+    Taskt = 1 * 0
+    i = Proj3.Tasks.Count
+    ReDim TaskList2(Proj3.Tasks.Count, 2)
+    TaskRowCntr = 0
+    For Taskt = 1 To Proj3.Tasks.Count
+        MacroProgressForm.StatusBox.Text = "Initial UID Load Finished" & Chr(13) & "Look Up 1 Finished" & Chr(13) & "'" & Proj1_Name & "-->" & Timer1_Min & " Min" & Chr(13) & "Look Up 2 Finished" & Chr(13) & "'" & Proj2_Name & "'" & "--->" & Timer2_Min & " Min" & Chr(13) & "Loading - " & Proj3.Tasks(Taskt).Text5 & " from " & Proj3.Name
+        TaskList2(TaskRowCntr, 0) = Proj3.Tasks(Taskt).Text5
+        TaskList2(TaskRowCntr, 1) = Format(Proj3.Tasks(Taskt).Start, "mm/dd/yy")
+        TaskList2(TaskRowCntr, 2) = Format(Proj3.Tasks(Taskt).Finish, "mm/dd/yy")
+        TaskRowCntr = TaskRowCntr + 1
+        MacroProgressForm.Bar.Width = (k / i) * 168
+        k = k + 1
+        MacroProgressForm.Perc_Comp.Text = CInt((CInt(k) / CInt(i)) * 100) & "% - " & CInt(k) & "/" & CInt(i)
+        MacroProgressForm.Repaint
+    Next
+    TaskRowCntr = 1 * 0
+    i = (Sheets("Previous-II").Range("A3:A20000").Cells.SpecialCells(xlCellTypeConstants).Count)
+    k = 0
+    MacroProgressForm.Bar.Width = k
+    For Ex_Row = 3 To Sheets("Previous-II").Range("A3:A20000").Cells.SpecialCells(xlCellTypeConstants).Count + 2
+        MacroProgressForm.StatusBox.Text = "Initial UID Load Finished" & Chr(13) & "Look Up 1 Finished" & Chr(13) & "'" & Proj1_Name & "-->" & Timer1_Min & " Min" & Chr(13) & "Look Up 2 Finished" & Chr(13) & "'" & Proj2_Name & "'" & "--->" & Timer2_Min & " Min" & Chr(13) & "Looking Up - " & ActiveSheet.Cells(Ex_Row, 1) & " from " & Proj3.Name
+            For TaskCount2 = LBound(TaskList2) To UBound(TaskList2)
+                If (Sheets("Previous-II").Cells(Ex_Row, 1).Value = TaskList2(TaskRowCntr, 0)) Then
+                    Sheets("Previous-II").Cells(Ex_Row, 2).Value = TaskList2(TaskRowCntr, 1)
+                    Sheets("Previous-II").Cells(Ex_Row, 3).Value = TaskList2(TaskRowCntr, 2)
+                    Exit For
+                End If
+                TaskRowCntr = TaskRowCntr + 1
+            Next
+            TaskRowCntr = 0
+            If Sheets("Previous-II").Cells(Ex_Row, 2).Value = "" Then
+                Sheets("Previous-II").Cells(Ex_Row, 2).Value = "did not exist"
+                Sheets("Previous-II").Cells(Ex_Row, 3).Value = "did not exist"
+            End If
+            k = k + 1
+            MacroProgressForm.Bar.Width = (k / i) * 168
+            MacroProgressForm.Perc_Comp.Text = CInt((CInt(k) / CInt(i)) * 100) & "% - " & CInt(k) & "/" & CInt(i)
+            MacroProgressForm.StatusBox.Text = "Initial UID Load Finished" & Chr(13) & "Look Up 1 Finished" & Chr(13) & "'" & Proj1_Name & "-->" & Timer1_Min & " Min" & Chr(13) & "Look Up 2 Finished" & Chr(13) & "'" & Proj2_Name & "'" & "--->" & Timer2_Min & " Min" & Chr(13) & "Looking Up - " & ActiveSheet.Cells(Ex_Row, 1) & " from " & Proj3.Name
+            MacroProgressForm.Repaint
+    Next
+    Timer3_Min = Format(((Now() - Timer3_Start) * 24 * 60), "0.00")
+    MacroProgressForm.StatusBox.Text = "Initial UID Load Finished" & Chr(13) & "Look Up 1 Finished" & Chr(13) & "'" & Proj1_Name & "-->" & Timer1_Min & " Min" & Chr(13) & "Look Up 2 Finished" & Chr(13) & "'" & Proj2_Name & "'" & "--->" & Timer2_Min & " Min" & Chr(13) & "Look Up 3 Finished" & Chr(13) & "'" & Proj3_Name & "'" & "---->" & Timer3_Min & " Min"
+    MacroProgressForm.StatusBox.Width = 168
+    MacroProgressForm.Perc_Comp.Text = CInt((CInt(i) / CInt(i)) * 100) & "% - " & CInt(i) & "/" & CInt(i)
+    MacroProgressForm.Repaint
+    Ex_KeyColCntr = 1 * 0
+    Ex_LUColCount = 1 * 0
+    Ex_LURetField = ""
+    Ex_LURetProjField = 1 * 0
+    TaskRowCntr = 1 * 0
+'[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
+'=================== End of File 3 of 3=================================
+'[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
+    
+    Sheets("UID-Schedule Data Compare").Activate
+    
+    FormatSummarySheet
+    
+    Range("N2").Select
+    ActiveCell.Value = "Current -" & Proj1_Name & "- Finish"
+    Range("L2").Select
+    ActiveCell.Value = "Previous-I -" & Proj2_Name & "- Finish"
+    Range("J2").Select
+    ActiveCell.Value = "Previous-II -" & Proj3_Name & "- Finish"
+    Range("H2").Select
+    ActiveCell.Value = "Current -" & Proj1_Name & "- Start"
+    Range("F2").Select
+    ActiveCell.Value = "Previous-I -" & Proj2_Name & "- Start"
+    Range("D2").Select
+    ActiveCell.Value = "Previous-II -" & Proj3_Name & "- Start"
+    Range("D3").Select
+    
+    
+    
+    FileClose pjDoNotSave
+    FileClose pjDoNotSave
+    FileClose pjDoNotSave
+    
+    Set Proj_App = Nothing
+    
+    TimerVarRep_Min = Format(((Now() - TimerVarRep_Start) * 24 * 60), "0.00")
+    MacroProgressForm.StatusBox.Text = "Initial UID Load Finished" & Chr(13) & "Look Up 1 Finished" & Chr(13) & "'" & Proj1_Name & "-->" & Timer1_Min & " Min" & Chr(13) & "Look Up 2 Finished" & Chr(13) & "'" & Proj2_Name & "'" & "--->" & Timer2_Min & " Min" & Chr(13) & "Look Up 3 Finished" & Chr(13) & "'" & Proj3_Name & "'" & "---->" & Timer3_Min & " Min" & Chr(13) & "Total Time----->" & TimerVarRep_Min & " Min"
+    MacroProgressForm.Bar.Text = "Variance Report Complete"
+End Sub
+
+
